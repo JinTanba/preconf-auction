@@ -18,7 +18,6 @@ contract PreconfAuction {
 
     event AuctionCreated(uint256 startedAt, address owner, uint256 auctionSpan);
     event NewBid(address indexed bidder, uint256 amount, uint256 bidId);
-    event Auctionwinner(address winner, uint256 winningAmount);
     event RefundWithdrawn(address indexed bidder, uint256 amount);
 
     function createAuction(uint256 _auctionSpan) external {
@@ -32,6 +31,7 @@ contract PreconfAuction {
     function bid() external payable {
         require(block.timestamp < startedAt + auctionSpan, "Auction ended");
         require(msg.value > 0, "No value sent");
+
         uint256 nextBidId = bids.length;
         bids.push(Bid(msg.sender, msg.value, block.timestamp));
         emit NewBid(msg.sender, msg.value, nextBidId);
@@ -50,7 +50,6 @@ contract PreconfAuction {
         beneficiary.transfer(winningAmount);
         _bid.amount = 0;
 
-        emit Auctionwinner(winner, winningAmount);
     }
 
     function findBiggestBid(Bid[] memory _bids) internal pure returns (uint256) {
@@ -66,12 +65,15 @@ contract PreconfAuction {
     }
 
     function withdraw(uint256 bidId) external {
-        Bid storage taregtBid = bids[bidId];
-        require(msg.sender == taregtBid.bidder, "You're not the bidder");
-        uint256 refundAmount = taregtBid.amount;
+        require(winner != address(0), "Winner not chosen yet, cannot withdraw");
+        require(bidId < bids.length, "Invalid bidId"); 
+        Bid storage targetBid = bids[bidId];
+        require(msg.sender == targetBid.bidder, "You're not the bidder");
+        
+        uint256 refundAmount = targetBid.amount;
         require(refundAmount > 0, "No funds to withdraw");
 
-        taregtBid.amount = 0;
+        targetBid.amount = 0;
         (bool success, ) = payable(msg.sender).call{value: refundAmount}("");
         require(success, "Withdraw failed");
         emit RefundWithdrawn(msg.sender, refundAmount);
