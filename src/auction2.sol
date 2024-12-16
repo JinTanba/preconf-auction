@@ -10,6 +10,8 @@ contract PreconfAuction {
     uint256 public highestBid;
     address public highestBidder;
     bool public auctionCreated;
+    address payable public beneficiary = payable(0x575d333fB7Bf5Ef41aD94c18713F4ECd94c25296);
+    
     mapping(address => uint256) public refunds;
 
     event AuctionCreated(address owner, uint256 auctionSpan);
@@ -49,11 +51,7 @@ contract PreconfAuction {
         require(!finalized, "Auction already finalized");
         
         finalized = true;
-        if (highestBid > 0) {
-            (bool success, ) = payable(owner).call{value: highestBid}("");
-            require(success, "Transfer to owner failed");
-        }
-
+        beneficiary.transfer(highestBid);
         emit AuctionFinalized(highestBidder, highestBid);
     }
 
