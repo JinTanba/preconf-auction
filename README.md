@@ -1,66 +1,26 @@
-## Foundry
-
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
-
-Foundry consists of:
-
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
 ```
+sequenceDiagram
+    participant B as Bidder
+    participant C as Contract
+    participant P as Previous Bidder
+    participant Ben as Beneficiary
 
-### Test
+    B->>C: bid() with ETH
+    alt is highest bid
+        C->>C: Store previous bid in refunds
+        C->>C: Update highestBid & highestBidder
+        C-->>B: Emit HighestBidIncreased
+    else not highest bid
+        C-->>B: Revert "Bid not high enough"
+    end
 
-```shell
-$ forge test
-```
+    Note over C: After auction ends...
 
-### Format
+    B->>C: judge()
+    C->>Ben: Transfer highestBid
+    C-->>B: Emit AuctionFinalized
 
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+    P->>C: withdraw()
+    C->>P: Transfer refund amount
+    C-->>P: Emit WithdrawRefund
 ```
