@@ -66,12 +66,12 @@ contract PreconfAuction {
     }
 
     function withdraw(uint256 bidId) external {
-        Bid storage bid = bids[bidId];
-        require(msg.sender == bid.bidder, "You're not the bidder");
-        uint256 refundAmount = bid.amount;
+        Bid storage taregtBid = bids[bidId];
+        require(msg.sender == taregtBid.bidder, "You're not the bidder");
+        uint256 refundAmount = taregtBid.amount;
         require(refundAmount > 0, "No funds to withdraw");
 
-        bid.amount = 0;
+        taregtBid.amount = 0;
         (bool success, ) = payable(msg.sender).call{value: refundAmount}("");
         require(success, "Withdraw failed");
         emit RefundWithdrawn(msg.sender, refundAmount);
