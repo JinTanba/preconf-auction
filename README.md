@@ -70,36 +70,26 @@ Accounts that no longer hold the highest bid can withdraw their bid amount from 
 
 ```mermaid
 sequenceDiagram
-    actor Owner
-    actor Bidder1
-    actor Bidder2
-    actor Beneficiary
-    actor Anyone
-    participant Contract as PreconfAuction
+    actor O as Owner
+    actor B1 as Bidder1
+    actor B2 as Bidder2
+    actor Ben as Beneficiary
+    participant C as Contract
 
-    Note over Contract: State Variables:<br/>startedAt: uint256<br/>auctionSpan: uint256<br/>highestBid: uint256<br/>highestBidder: address<br/>refunds: mapping(address => uint256)
+    O->>C: createAuction(_auctionSpan)
+    Note over C: startedAt = now<br>auctionSpan = _auctionSpan
 
-    Owner->>+Contract: createAuction(_auctionSpan)
-    Note over Contract: Checks:<br/>1. startedAt must be 0<br/><br/>Actions:<br/>1. Set startedAt = block.timestamp<br/>2. Set auctionSpan
-    Contract-->>-Owner: AuctionCreated(owner, auctionSpan)
-    
-    Bidder1->>+Contract: bid() with 1 ETH
-    Note over Contract: Checks:<br/>1. Not ended (timestamp)<br/>2. msg.value > 0<br/>3. msg.value > highestBid<br/><br/>Actions:<br/>1. Set highestBid = 1 ETH<br/>2. Set highestBidder = Bidder1
-    Contract-->>-Bidder1: HighestBidIncreased(Bidder1, 1 ETH)
-    
-    Bidder2->>+Contract: bid() with 2 ETH
-    Note over Contract: Checks:<br/>Same as previous bid<br/><br/>Actions:<br/>1. Add 1 ETH to refunds[Bidder1]<br/>2. Set highestBid = 2 ETH<br/>3. Set highestBidder = Bidder2
-    Contract-->>-Bidder2: HighestBidIncreased(Bidder2, 2 ETH)
-    
-    Bidder1->>+Contract: withdraw()
-    Note over Contract: Checks:<br/>1. refunds[Bidder1] > 0<br/><br/>Actions:<br/>1. amount = refunds[Bidder1]<br/>2. Set refunds[Bidder1] = 0<br/>3. Transfer amount
-    Contract-->>-Bidder1: WithdrawRefund(Bidder1, 1 ETH)
-    
-    Note over Contract: auctionSpan elapsed
-    
-    Anyone->>+Contract: judge()
-    Note over Contract: Checks:<br/>1. block.timestamp >= startedAt + auctionSpan<br/>2. startedAt > 0<br/><br/>Actions:<br/>1. Set startedAt = 0<br/>2. Transfer highestBid to beneficiary
-    Contract-->>Beneficiary: Transfer 2 ETH
-    Contract-->>-Anyone: AuctionFinalized(Bidder2, 2 ETH)
+    B1->>C: bid() with 1 ETH
+    Note over C: highestBid = 1 ETH<br>highestBidder = Bidder1
 
+    B2->>C: bid() with 2 ETH
+    Note over C: refunds[Bidder1] += 1 ETH<br>highestBid = 2 ETH<br>highestBidder = Bidder2
+
+    B1->>C: withdraw()
+    C->>B1: Transfer 1 ETH refund
+
+    Note over C: After auctionSpan
+    
+    O->>C: judge()
+    C->>Ben: Transfer 2 ETH
 ```
