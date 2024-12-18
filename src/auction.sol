@@ -4,12 +4,9 @@ pragma solidity >=0.8.19;
 contract PreconfAuction {
 
     uint256 public startedAt;
-    address public owner;
     uint256 public auctionSpan;
-    bool public finalized;
     uint256 public highestBid;
     address public highestBidder;
-    bool public auctionCreated;
     address payable public beneficiary = payable(0x575d333fB7Bf5Ef41aD94c18713F4ECd94c25296);
     
     mapping(address => uint256) public refunds;
@@ -20,18 +17,14 @@ contract PreconfAuction {
     event WithdrawRefund(address bidder, uint256 amount);
 
     function createAuction(uint256 _auctionSpan) external {
-        require(!auctionCreated, "Auction already created");
-        auctionCreated = true;
+        require(startedAt == 0, "Auction already created");
         startedAt = block.timestamp;
-        owner = msg.sender;
         auctionSpan = _auctionSpan;
-        finalized = false;
 
         emit AuctionCreated(msg.sender, _auctionSpan);
     }
 
     function bid() external payable {
-        require(auctionCreated, "Auction not created");
         require(block.timestamp < startedAt + auctionSpan, "Auction ended");
         require(msg.value > 0, "No value sent");
         require(msg.value > highestBid, "Bid not high enough");
@@ -46,11 +39,10 @@ contract PreconfAuction {
     }
 
     function judge() external {
-        require(auctionCreated, "Auction not created");
         require(block.timestamp >= startedAt + auctionSpan, "Auction not ended yet");
-        require(!finalized, "Auction already finalized");
+        require(startedAt > 0, "Auction already finalized");
         
-        finalized = true;
+        startedAt = 0;
         beneficiary.transfer(highestBid);
         emit AuctionFinalized(highestBidder, highestBid);
     }
