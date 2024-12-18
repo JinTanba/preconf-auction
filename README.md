@@ -1,3 +1,4 @@
+
 ### Overview
 This auction updates the highest bid amount whenever a new bid is received. If a1 is the highest bid at a certain point and a2>a1, a2's bid amount is stored as `highestBid`, a2's sender becomes the `highestBidder`, and a1 is stored in `refunds`.
 The auction can set `auctionSpan` at its start, and time control for bid acceptance and settlement is performed through calculations between `startedAt` (also set at start) and block.timestamp.
@@ -97,4 +98,11 @@ sequenceDiagram
     Contract-->>-Anyone: AuctionFinalized Event
     
     Note over Contract: Auction Completed
+ C->>Ben: Transfer highestBid
+    C-->>B: Emit AuctionFinalized
+
+    P->>C: withdraw()
+    C->>P: Transfer refund amount
+    C-->>P: Emit WithdrawRefund
+>>>>>>> origin/main
 ```
