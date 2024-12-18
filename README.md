@@ -104,5 +104,4 @@ sequenceDiagram
     P->>C: withdraw()
     C->>P: Transfer refund amount
     C-->>P: Emit WithdrawRefund
->>>>>>> origin/main
 ```
