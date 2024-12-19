@@ -41,6 +41,27 @@ First-Price Open Auction is an auction format where all submitted bids are immed
 
 ## 3. Technical Specification
 
+```mermaid
+sequenceDiagram
+    actor O as Owner
+    actor B1 as Bidder1
+    actor B2 as Bidder2
+    actor Ben as Beneficiary
+    participant C as Contract
+    O->>C: createAuction(_auctionSpan)
+    Note over C: startedAt = now<br>auctionSpan = _auctionSpan
+    B1->>C: bid() with 1 ETH
+    Note over C: highestBid = 1 ETH<br>highestBidder = Bidder1
+    B2->>C: bid() with 2 ETH
+    Note over C: refunds[Bidder1] += 1 ETH<br>highestBid = 2 ETH<br>highestBidder = Bidder2
+    B1->>C: withdraw()
+    C->>B1: Transfer 1 ETH refund
+    Note over C: After auctionSpan
+    
+    O->>C: judge()
+    C->>Ben: Transfer 2 ETH
+```
+
 ### 3.1 Time Control
 - The auction's temporal parameters are defined by two values:
 - `startedAt`: A fixed, non-negative integer timestamp representing when the auction began
